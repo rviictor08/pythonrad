@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <h1>Bem-vindo ao Dashboard</h1>
+    <p>Olá, {{ nome_completo }}!</p>
+
+    <!-- Links importantes -->
+    <a href="/perfil">Meus Dados</a> | 
+    <a href="/logout">Sair</a>
+</body>
+</html>

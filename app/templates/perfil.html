@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil do Usuário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cadastro.css') }}">
+</head>
+<body>
+    <h1>Seu Perfil</h1>
+
+    <p><strong>Nome:</strong> {{ perfil.nome }}</p>
+    <p><strong>Contato:</strong> {{ perfil.contato }}</p>
+    {% if perfil.foto %}
+      <img src="{{ url_for('static', filename=perfil.foto) }}" alt="Foto do Perfil" width="150">
+    {% else %}
+      <p>Sem foto cadastrada.</p>
+    {% endif %}
+
+    <!-- Formulário para editar -->
+    <h2>Atualizar Dados</h2>
+    <form method="POST" action="/perfil/editar" enctype="multipart/form-data">
+       <input type="text" name="nome" value="{{ perfil.nome }}" required>
+       <input type="text" name="contato" value="{{ perfil.contato }}" required>
+       <input type="file" name="foto">
+       <button type="submit">Salvar Alterações</button>
+    </form>
+
+    <a href="/dashboard">Voltar ao Dashboard</a>
+</body>
+</html>
