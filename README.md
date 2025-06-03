@@ -56,5 +56,5 @@ Este projeto foi desenvolvido como parte da disciplina **ARA0095 - Desenvolvimen
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/seu-usuario/pythonrad.git
+   git clone https://github.com/rviictor08/pythonrad
    cd pythonrad
