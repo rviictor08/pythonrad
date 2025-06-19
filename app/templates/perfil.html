@@ -1,30 +1,16 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Perfil do Usuário</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cadastro.css') }}">
-</head>
-<body>
-    <h1>Seu Perfil</h1>
 
-    <p><strong>Nome:</strong> {{ perfil.nome }}</p>
-    <p><strong>Contato:</strong> {{ perfil.contato }}</p>
-    {% if perfil.foto %}
-      <img src="{{ url_for('static', filename=perfil.foto) }}" alt="Foto do Perfil" width="150">
-    {% else %}
-      <p>Sem foto cadastrada.</p>
-    {% endif %}
+{% extends 'base.html' %}
 
-    <!-- Formulário para editar -->
-    <h2>Atualizar Dados</h2>
-    <form method="POST" action="/perfil/editar" enctype="multipart/form-data">
-       <input type="text" name="nome" value="{{ perfil.nome }}" required>
-       <input type="text" name="contato" value="{{ perfil.contato }}" required>
-       <input type="file" name="foto">
-       <button type="submit">Salvar Alterações</button>
-    </form>
+{% block content %}
+<h2>Perfil</h2>
 
-    <a href="/dashboard">Voltar ao Dashboard</a>
-</body>
-</html>
+<form method="POST">
+    <label for="nome">Nome Completo:</label>
+    <input type="text" name="nome" id="nome" value="{{ profile.nome if profile else '' }}" required />
+
+    <label for="contato">Contato (telefone):</label>
+    <input type="text" name="contato" id="contato" value="{{ profile.contato if profile else '' }}" required />
+
+    <button type="submit">Salvar Perfil</button>
+</form>
+{% endblock %}

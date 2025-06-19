@@ -1,0 +1,139 @@
+/* Estilo geral da página */
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+header {
+    background-color: #343a40;
+    padding: 20px;
+    color: #fff;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-family: 'Georgia', serif;
+    font-size: 24px;
+}
+
+nav a {
+    color: #f8f9fa;
+    margin: 0 15px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav a:hover {
+    color: #ffc107;
+}
+
+.container {
+    max-width: 950px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    border-radius: 8px;
+}
+
+h2 {
+    color: #343a40;
+    margin-bottom: 20px;
+    font-size: 22px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+input[type=email], input[type=password], input[type=text] {
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+button {
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #007bff;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0069d9;
+}
+
+footer {
+    background-color: #343a40;
+    color: #ccc;
+    text-align: center;
+    padding: 10px;
+    margin-top: 160px;
+    font-size: 14px;
+}
+
+/* Mensagens de alerta/sucesso */
+.flash-messages {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+}
+
+.flash-messages li {
+    background-color: #fdedec;
+    color: #b94a48;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #b94a48;
+}
+
+/* Seção de livros na home */
+.livros {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.livro {
+    background-color: #f1f1f1;
+    padding: 15px;
+    border-radius: 8px;
+    width: calc(33% - 20px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    transition: transform 0.2s;
+}
+
+.livro:hover {
+    transform: translateY(-2px);
+}
+
+@media(max-width: 768px) {
+    .livro {
+        width: calc(50% - 20px);
+    }
+}
+
+@media(max-width: 480px) {
+    .livro {
+        width: 100%;
+    }
+}

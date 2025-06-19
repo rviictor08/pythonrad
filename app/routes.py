@@ -1,131 +1,100 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import render_template, flash, redirect, url_for, request
+from flask_login import current_user, login_user, logout_user, login_required
+from urllib.parse import urlparse
+from werkzeug.security import generate_password_hash, check_password_hash
+from app import app, db
+from app.models import User, Perfil
 
-import os
-import sqlite3
 
-# Configuração do app Flask
-app = Flask(__name__)
-app.secret_key = "chave_secreta"
-app.config['UPLOAD_FOLDER'] = 'static/uploads/'
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+@app.route("/")
+def home():
+    return render_template("home.html")
 
-def conectar_banco():
-    return sqlite3.connect('database.db')
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        senha = request.form['senha']
+    if current_user.is_authenticated:
+        return redirect(url_for("home"))
 
-        conexao = conectar_banco()
-        cursor = conexao.cursor()
-        cursor.execute("SELECT * FROM usuarios WHERE email = ? AND senha = ?", (email, senha))  # corrigido
-        usuario = cursor.fetchone()
-        conexao.close()
+    if request.method == "POST":
+        email = request.form["email"]
+        senha = request.form["senha"]
+        user = User.query.filter_by(email=email).first()
 
-        if usuario:
-                session['user_id'] = usuario[0]  # salva o ID do usuário na sessão
-                flash("Login realizado com sucesso!", "success")
-                return redirect(url_for('dashboard'))
+        if user and check_password_hash(user.senha, senha):
+            if not user.liberacao:
+                flash("Usuário ainda não autorizado. Aguarde a liberação.")
+                return redirect(url_for("login"))
+
+            login_user(user)
+
+            if user.mudaSenha:
+                flash("Por favor, altere sua senha.")
+                return redirect(url_for("nova_senha"))
+
+            next_page = request.args.get("next")
+            if not next_page or urlparse(next_page).netloc != "":
+                next_page = url_for("home")
+            return redirect(next_page)
         else:
-            flash("E-mail ou senha incorretos.", "danger")
+            flash("Email ou senha inválidos")
+    return render_template("login.html")
 
-    return render_template('login.html')
 
-@app.route('/dashboard')
-def dashboard():
-    if 'user_id' not in session:
-        flash("Você precisa estar logado para acessar o dashboard.", "danger")
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute("SELECT nome FROM perfil WHERE userID = ?", (user_id,))
-    resultado = cursor.fetchone()
-    conexao.close()
-
-    nome_completo = resultado[0] if resultado else "Usuário"
-
-    return render_template('dashboard.html', nome_completo=nome_completo)
-
-@app.route('/logout')
+@app.route("/logout")
 def logout():
-    session.pop('user_id', None)
-    flash("Você saiu da conta com sucesso.", "success")
-    return redirect(url_for('login'))
+    logout_user()
+    return redirect(url_for("home"))
 
 
-@app.route('/perfil', methods=['GET', 'POST'])
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("home"))
+
+    if request.method == "POST":
+        email = request.form["email"]
+        senha = request.form["senha"]
+        # Verifica se o usuário já existe
+        user_existente = User.query.filter_by(email=email).first()
+        if user_existente:
+            flash("Email já cadastrado")
+        else:
+            hashed_senha = generate_password_hash(senha)
+            novo_usuario = User(email=email, senha=hashed_senha)
+            db.session.add(novo_usuario)
+            db.session.commit()
+            flash("Cadastro realizado com sucesso")
+            return redirect(url_for("login"))
+    return render_template("register.html")
+
+
+@app.route("/perfil", methods=["GET", "POST"])
+@login_required
 def perfil():
-    if request.method == 'POST':
-        nome = request.form['nome']
-        contato = request.form['contato']
-        foto = request.files['foto']
-        user_id = 1  # Simulação
+    profile = current_user.perfil
+    if request.method == "POST":
+        nome = request.form["nome"]
+        contato = request.form["contato"]
+        if profile:
+            profile.nome = nome
+            profile.contato = contato
+        else:
+            profile = Perfil(userID=current_user.id, nome=nome, contato=contato)
+            db.session.add(profile)
+        db.session.commit()
+        flash("Perfil atualizado")
+    return render_template("perfil.html", profile=profile)
 
-        caminho_foto = None
-        if foto:
-            caminho_foto = os.path.join(app.config['UPLOAD_FOLDER'], foto.filename)
-            foto.save(caminho_foto)
 
-        conexao = conectar_banco()
-        cursor = conexao.cursor()
-        cursor.execute("""
-            UPDATE perfil
-            SET nome = ?, contato = ?, foto = ?
-            WHERE userID = ?
-        """, (nome, contato, caminho_foto, user_id))  # corrigido
-        conexao.commit()
-        conexao.close()
-
-        flash("Perfil atualizado com sucesso!", "success")
-        return redirect(url_for('dashboard'))
-
-    user_id = 1  # Simulação
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute("SELECT nome, contato, foto FROM perfil WHERE userID = ?", (user_id,))  # corrigido
-    perfil = cursor.fetchone()
-    conexao.close()
-
-    if perfil is None:
-        flash("Perfil não encontrado. Verifique se o usuário está cadastrado.", "danger")
-        return redirect(url_for('dashboard'))
-
-    return render_template('perfil.html', nome=perfil[0], contato=perfil[1], foto=perfil[2])
-
-@app.route('/cadastro', methods=['GET', 'POST'])
-def cadastro():
-    if request.method == 'POST':
-        email = request.form['email']
-        senha = request.form['senha']
-        tipo_usuario = 0
-        liberacao = 1
-
-        conexao = conectar_banco()
-        cursor = conexao.cursor()
-        cursor.execute("""
-            INSERT INTO usuarios (email, senha, tipoUsuario, liberacao)
-            VALUES (?, ?, ?, ?)
-        """, (email, senha, tipo_usuario, liberacao))  # corrigido
-        conexao.commit()
-        conexao.close()
-
-        flash("Usuário cadastrado com sucesso!", "success")
-        return redirect(url_for('login'))
-
-    return render_template('cadastro.html')
-
-@app.errorhandler(404)
-def pagina_nao_encontrada(e):
-    return render_template('404.html'), 404
-
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route("/nova_senha", methods=["GET", "POST"])
+@login_required
+def nova_senha():
+    if request.method == "POST":
+        nova_senha = request.form["nova_senha"]
+        current_user.senha = generate_password_hash(nova_senha)
+        current_user.mudaSenha = False
+        db.session.commit()
+        flash("Senha atualizada com sucesso")
+        return redirect(url_for("home"))
+    return render_template("nova_senha.html")

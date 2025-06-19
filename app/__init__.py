@@ -1,23 +1,27 @@
-from flask import Flask, render_template, request
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from config import Config
 
+# Inicialização do Flask app
 app = Flask(__name__)
+app.config.from_object(Config)
 
-# Página inicial
-@app.route('/')
-def index():
-    return "Página Inicial"
+# Inicializa o banco de dados
+db = SQLAlchemy(app)
 
-# Página de cadastro (exibe o formulário)
-@app.route('/cadastro', methods=['GET', 'POST'])
-def cadastro():
-    if request.method == 'GET':
-        return render_template('cadastro.html')  # mostra o formulário
-    elif request.method == 'POST':
-        # Aqui você pode processar o cadastro (salvar no banco)
-        email = request.form['email']
-        senha = request.form['senha']
-        # Aqui você pode chamar uma função para salvar os dados
-        return "Usuário cadastrado com sucesso!"  # mensagem de confirmação ou redirecionar
+# Configuração do gerenciador de login
+login = LoginManager(app)
+login.login_view = "login"  # nome da rota de login
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
+# Registrar o carregador de usuário
+@login.user_loader
+def load_user(user_id):
+    from app.models import User
+
+    return User.query.get(int(user_id))
+
+
+# Importa rotas e modelos após a configuração
+from app import routes, models

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Nova Senha</h2>
+<form method="POST">
+    <label>Digite sua nova senha:</label><br>
+    <input type="password" name="nova_senha" required><br><br>
+    <button type="submit">Salvar</button>
+</form>
+{% endblock %}
